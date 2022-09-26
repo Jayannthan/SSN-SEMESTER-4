@@ -1,0 +1,172 @@
+
+-- Write a PL/SQL Trigger for the following:
+-- 1. The combination of Flavor and Food determines the product id. Hence, while
+-- inserting a new instance into the Products relation, ensure that the same combination
+-- of Flavor and Food is not already available.
+
+SQL> 
+SQL> SET SERVEROUTPUT ON;
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER BEFORE_PRODUCT_INSERT
+  2  BEFORE INSERT ON PRODUCTS FOR EACH ROW
+  3  DECLARE 
+  4      CT NUMBER:=0;
+  5      CURSOR PROCURSOR IS SELECT * FROM PRODUCTS
+  6      WHERE FOOD=:NEW.FOOD AND FLAVOR=:NEW.FLAVOR;
+  7      RECORD PROCURSOR%ROWTYPE;
+  8  BEGIN
+  9      OPEN PROCURSOR;
+ 10      FETCH PROCURSOR INTO RECORD;
+ 11      IF PROCURSOR%NOTFOUND THEN
+ 12          CT:=1;
+ 13      END IF;
+ 14      CLOSE PROCURSOR;
+ 15      IF CT=0 THEN
+ 16          RAISE_APPLICATION_ERROR(-20000,'COMBINATION ALREADY AVAILABLE');
+ 17      END IF;
+ 18  END;
+ 19  /
+
+Trigger created.
+
+SQL> 
+SQL> INSERT INTO PRODUCTS 
+  2  VALUES ('20-BC','CHOCOLATE','CAKE',8.95);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO PRODUCTS 
+  2  VALUES ('20-BC','CHOCOLATE','CAKE',8.95);
+INSERT INTO PRODUCTS
+            *
+ERROR at line 1:
+ORA-20000: COMBINATION ALREADY AVAILABLE
+ORA-06512: at "1049.BEFORE_PRODUCT_INSERT", line 14
+ORA-04088: error during execution of trigger '1049.BEFORE_PRODUCT_INSERT'
+
+
+-- 2. While entering an item into the item_list relation, update the amount in Receipts with
+-- the total amount for that receipt number.
+
+
+SQL> 
+SQL> SAVEPOINT SAVE1;
+
+Savepoint created.
+
+SQL> ALTER TABLE RECEIPTS
+  2  ADD AMT NUMBER;
+
+Table altered.
+
+SQL> 
+SQL> SELECT * FROM RECEIPTS 
+  2  WHERE RNO=51991;
+
+       RNO RDATE            CID        AMT
+---------- --------- ---------- ----------
+     51991 17-OCT-07         14
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER ITEM_LIST_ITEMS_AMOUNT
+  2  BEFORE INSERT ON ITEM_LIST FOR EACH ROW
+  3  BEGIN
+  4      UPDATE RECEIPTS
+  5      SET AMT=(SELECT SUM(PRICE) FROM ITEM_LIST,PRODUCTS
+  6      WHERE RNO=:NEW.RNO AND PID=ITEM) WHERE RNO=:NEW.RNO;
+  7      UPDATE RECEIPTS
+  8      SET AMT=AMT+(SELECT PRICE FROM PRODUCTS
+  9      WHERE PID=:NEW.ITEM) WHERE RNO=:NEW.RNO;
+ 10  END;
+ 11  /
+
+Trigger created.
+
+SQL> 
+SQL> INSERT INTO ITEM_LIST VALUES(51991,5,'45-VA');
+
+1 row created.
+
+SQL> SELECT * FROM RECEIPTS 
+  2  WHERE RNO=51991;
+
+       RNO RDATE            CID        AMT
+---------- --------- ---------- ----------
+     51991 17-OCT-07         14      31.45
+
+
+
+-- 3. Implement the following constraints for Item_list relation:
+-- a. A receipt can contain a maximum of five items only.
+-- b. A receipt should not allow an item to be purchased more than thrice.
+
+SQL> 
+SQL> SAVEPOINT SAVE1;
+
+Savepoint created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER MAX_CONST_ITEMS
+  2  BEFORE INSERT ON ITEM_LIST FOR EACH ROW
+  3  DECLARE
+  4      CURSOR RNOCOUNT IS SELECT COUNT(*) AS COUNT1 FROM ITEM_LIST
+  5      WHERE RNO=:NEW.RNO;
+  6      CURSOR RNO_ITEM_COUNT IS SELECT COUNT(*) AS COUNT2 FROM ITEM_LIST
+  7      WHERE RNO=:NEW.RNO AND ITEM=:NEW.ITEM;
+  8      RNO_ROW RNOCOUNT%ROWTYPE;
+  9      RNO_ITEM_ROW RNO_ITEM_COUNT%ROWTYPE;
+ 10  BEGIN
+ 11      OPEN RNOCOUNT;
+ 12      OPEN RNO_ITEM_COUNT;
+ 13      FETCH RNOCOUNT INTO RNO_ROW;
+ 14      FETCH RNO_ITEM_COUNT INTO RNO_ITEM_ROW;
+ 15      IF RNO_ROW.COUNT1>=5 AND RNO_ITEM_ROW.COUNT2>=3 THEN
+ 16          RAISE_APPLICATION_ERROR(-20001,'THE RECEIPT ALREADY HAS 5 ITEMS AND THE ITEM IS PURCHASED THRICE');
+ 17      ELSIF RNO_ROW.COUNT1>=5 THEN
+ 18          RAISE_APPLICATION_ERROR(-20002,'THE RECEIPT ALREADY HAS 5 ITEMS');
+ 19      ELSIF RNO_ITEM_ROW.COUNT2>=3 THEN
+ 20          RAISE_APPLICATION_ERROR(-20003,'THE ITEM IS PURCHASED THRICE');
+ 21      END IF;
+ 22      CLOSE RNO_ITEM_COUNT;
+ 23      CLOSE RNOCOUNT;
+ 24  END;
+ 25  /
+
+Trigger created.
+
+SQL> 
+SQL> INSERT INTO ITEM_LIST VALUES(52761,6,'90-ALM-I');
+INSERT INTO ITEM_LIST VALUES(52761,6,'90-ALM-I')
+         *
+ERROR at line 1:
+ORA-20002: THE RECEIPT ALREADY HAS 5 ITEMS
+ORA-06512: at "1049.MAX_CONST_ITEMS", line 16
+ORA-04088: error during execution of trigger '1049.MAX_CONST_ITEMS'
+
+
+SQL> INSERT INTO ITEM_LIST VALUES(83085,6,'45-CH');
+INSERT INTO ITEM_LIST VALUES(83085,6,'45-CH')
+         *
+ERROR at line 1:
+ORA-20002: THE RECEIPT ALREADY HAS 5 ITEMS
+ORA-06512: at "1049.MAX_CONST_ITEMS", line 16
+ORA-04088: error during execution of trigger '1049.MAX_CONST_ITEMS'
+
+
+SQL> INSERT INTO ITEM_LIST VALUES(32565,4,'50-APP');
+
+1 row created.
+
+SQL> INSERT INTO ITEM_LIST VALUES(32565,4,'50-APP');
+INSERT INTO ITEM_LIST VALUES(32565,4,'50-APP')
+            *
+ERROR at line 1:
+ORA-20003: THE ITEM IS PURCHASED THRICE
+ORA-06512: at "1049.MAX_CONST_ITEMS", line 18
+ORA-04088: error during execution of trigger '1049.MAX_CONST_ITEMS'
+
+
+SQL> rollback;
+
+Rollback complete.

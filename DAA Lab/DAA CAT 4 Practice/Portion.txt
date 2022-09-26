@@ -1,0 +1,11 @@
+1.  Quick sort
+2.  Merge sort
+3.  Karatsuba
+4.  Stassen
+5.  Prims
+6.  Kruskals
+7.  Dijkstra
+8.  Knapsack DP
+9.  Warshall
+10. Floyd
+11. N Queens

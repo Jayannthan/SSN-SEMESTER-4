@@ -1,0 +1,11 @@
+Bit Pair Recoding | Modified Booth Algorithm for multiplication of Signed Numbers| J Academy
+
+https://www.youtube.com/watch?v=gdV-uaPkmxk
+
+
+HOW TO: Booth's Algorithm (4×7 example)
+https://www.youtube.com/watch?v=1ubyXuXxIWU
+
+
+sri ram vasudevan coa playlist - important 
+https://youtube.com/playlist?list=PL3uLubnzL2TnsFH20zsKOcaViV0Jl_b3h

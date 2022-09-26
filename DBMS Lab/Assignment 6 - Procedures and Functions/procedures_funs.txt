@@ -1,0 +1,234 @@
+Q1
+
+
+ALTER TABLE item_list ADD (sale_price NUMBER(10,2));
+
+ 
+
+CREATE OR REPLACE PROCEDURE calculate_discount (v_receipt IN number) AS
+
+  v_fname customers.firstname%TYPE;
+
+  v_lname customers.lastname%TYPE;
+
+  v_discount NUMBER(10,2);
+
+  v_after_discount NUMBER(10,2);
+
+  v_date  DATE;
+
+  TYPE rec_products IS RECORD (food products.food%TYPE, flavour products.flavour%TYPE, quantity number);
+
+  TYPE type_products IS TABLE OF rec_products;
+
+  v_products type_products;
+
+  total NUMBER := 0;
+
+BEGIN
+
+  SELECT firstname, lastname, b."Date",
+
+         CASE WHEN Sum(price) >  50 THEN 0.2
+
+              WHEN Sum(price) >  25 THEN 0.1
+
+              WHEN Sum(price) >  50 THEN 0.05 ELSE 0 END
+
+    INTO v_fname, v_lname, v_date, v_discount
+
+    FROM customers a, receipts b, item_list c, products d
+
+   WHERE a.id = b.customer_id AND receiptnumber = v_receipt
+
+     AND b.receiptnumber = c.receipt AND d.id = c.item
+
+   GROUP BY firstname, lastname, b."Date";
+
+  UPDATE item_list a SET sale_price = (SELECT price * (1-v_discount) FROM products WHERE id = a.item)
+
+   WHERE receipt = v_receipt ;
+
+  COMMIT;
+
+  DECLARE
+
+    CURSOR c1 IS SELECT ROWNUM AS sno, flavour, food, price FROM item_list a, products b WHERE a.item = b.id AND a.receipt = v_receipt ;
+
+  BEGIN
+
+    IF v_fname IS NOT NULL THEN
+
+      Dbms_Output.put_line('************************************************************************************');
+
+      Dbms_Output.put_line(RPad('Receipt Number',20,' ')||':'||Chr(9)||v_receipt||Chr(9)||Chr(9)||'Customer : '||v_fname||' '||v_lname);
+
+      Dbms_Output.put_line(RPad('Receipt Date',20,' ')||':'||Chr(9)||v_date);
+
+      Dbms_Output.put_line('************************************************************************************');
+
+    END IF;
+
+    Dbms_Output.put_line('SNo'||Chr(9)||RPad('Flavour',15,' ')||Chr(9)||RPad('Food',15,' ')||Chr(9)||LPad('Price',8,' '));
+
+    FOR i IN c1 LOOP
+
+      Dbms_Output.put_line(i.sno||Chr(9)||RPad(i.flavour,15,' ')||Chr(9)||RPad(i.food,15,' ')||Chr(9)||LPad(i.price,8,' '));
+
+      total := total+i.price;
+
+    END LOOP;
+
+      Dbms_Output.put_line('-----------------------------------------------------------------------');
+
+      Dbms_Output.put_line(Chr(9)||Chr(9)||Chr(9)||RPad('Total',15,' ')||' = '||Chr(9)||LPad(total,8,' '));
+
+      Dbms_Output.put_line('-----------------------------------------------------------------------');
+
+      Dbms_Output.put_line(RPad('Total Amount',25,' ')||Chr(9)||LPad(total,8,' '));
+
+      Dbms_Output.put_line(RPad('Discount ('||v_discount*100||'%)',25,' ')||Chr(9)||LPad(total*v_discount,8,' '));
+
+      Dbms_Output.put_line('-----------------------------------------------------------------------');
+
+      Dbms_Output.put_line(RPad('Amount to be paid',25,' ')||Chr(9)||LPad(total-(total*v_discount),8,' '));
+
+      Dbms_Output.put_line('************************************************************************************');
+
+      Dbms_Output.put_line('Great Offers! Discount up to 25% on DIWALI Festival Day');
+
+      Dbms_Output.put_line('************************************************************************************');
+
+  END;
+
+END;
+
+
+
+q2
+
+
+Q3
+
+ 
+
+CREATE OR REPLACE PROCEDURE pr_recommend_item(budget IN NUMBER, food_type IN VARCHAR2) AS
+
+  TYPE rec_products IS RECORD (item products.id%TYPE, flavour products.flavour%TYPE, food products.food%TYPE, price products.price%TYPE, cnt number);
+
+  TYPE type_products IS TABLE OF rec_products;
+
+  v_products type_products;
+
+  v_item products.id%TYPE;
+
+  v_flavour products.flavour%TYPE;
+
+  v_food products.food%TYPE;
+
+  v_cnt NUMBER:= 0;
+
+  v_num NUMBER;
+
+  CURSOR c1 IS SELECT item, flavour, food, price, Count(*) FROM item_list a, products b
+
+                WHERE a.item = b.id AND b.food = food_type AND price <= budget GROUP BY item, flavour, food, price ORDER BY 5 DESC;
+
+BEGIN
+
+  Dbms_Output.put_line('************************************************************************************');
+
+  Dbms_Output.put_line(RPad('***Budget',20,' ')||':   $'||budget||Chr(9)||Chr(9)||Chr(9)||'Food Type : '||food_type);
+
+  Dbms_Output.put_line('************************************************************************************');
+
+  Dbms_Output.put_line(RPad('Item ID',25,' ')||Chr(9)||RPad('Flavour',25)||Chr(9)||RPad('Food',20)||Chr(9)||Chr(9)||'Price');
+
+  FOR i IN c1 LOOP
+
+     dbms_output.put_line(RPad(i.item,25)||Chr(9)||RPad(i.flavour,25)||Chr(9)||RPad(i.food,20)||Chr(9)||i.price);
+
+     IF v_cnt = 0 THEN
+
+       v_item := i.item;
+
+       v_flavour := i.flavour;
+
+       v_num := Trunc(budget/i.price);
+
+     END IF;
+
+  END LOOP;
+
+  Dbms_Output.put_line('----------------------------------------------------------------------');
+
+  Dbms_Output.put_line(v_item||' with '||v_flavour||' flavor is the best item in '||food_type||'!  You are '||Chr(10)||'entitled to purchase '||v_num||' '||food_type||' '||v_flavour||'(s) for the given budget !!!');
+
+  Dbms_Output.put_line('************************************************************************************');
+
+END;
+
+
+Q4
+CREATE OR REPLACE FUNCTION fn_display_custome (v_food VARCHAR2, v_flavour VARCHAR2) return VARCHAR2 AS
+
+  v_name VARCHAR2(75);
+
+  v_cnt NUMBER;
+
+BEGIN
+
+  select firstname ||' '|| lastname INTO v_name FROM customers WHERE id = (SELECT id FROM (
+
+  SELECT a.id, Count(*)
+
+    FROM customers a, products b, item_list c, receipts d
+
+   WHERE a.id = d.customer_id AND c.receipt = d.receiptnumber AND c.item = b.id
+
+     AND b.food = v_food AND flavour = v_flavour
+
+  GROUP BY a.id ORDER BY 2 DESC) WHERE ROWNUM = 1);
+
+  RETURN v_name;
+
+
+Q5
+
+ 
+
+CREATE OR REPLACE FUNCTION fn_calculate_discount (v_receipt number) return NUMBER  AS
+
+  v_discount NUMBER(10,2);
+
+  v_amt_tobe_paid NUMBER(10,2);
+
+BEGIN
+
+  SELECT CASE WHEN Sum(price) >  50 THEN 0.2
+
+              WHEN Sum(price) >  25 THEN 0.1
+
+              WHEN Sum(price) >  50 THEN 0.05 ELSE 0 END
+
+    INTO v_discount
+
+    FROM customers a, receipts b, item_list c, products d
+
+   WHERE a.id = b.customer_id AND receiptnumber = v_receipt
+
+     AND b.receiptnumber = c.receipt AND d.id = c.item
+
+   GROUP BY firstname, lastname, b."Date";
+
+  UPDATE item_list a SET sale_price = (SELECT price * (1-v_discount) FROM products WHERE id = a.item)
+
+   WHERE receipt = v_receipt ;
+
+  SELECT Sum(sale_price) INTO v_amt_tobe_paid FROM item_list WHERE receipt = v_receipt;
+
+  COMMIT;
+
+  RETURN v_amt_tobe_paid;
+
+END;

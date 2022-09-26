@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int KNAPSACK_GREEDY(int W, int v[], int w[], int n)
+{
+    if (n == 0 or W == 0)
+    {
+        return 0;
+    }
+
+    if (w[n - 1] > W)
+    {
+        return KNAPSACK_GREEDY(W, v, w, n - 1);
+    }
+
+    else
+    {
+        return max(KNAPSACK_GREEDY(W, v, w, n - 1), v[n - 1] + KNAPSACK_GREEDY(W - w[n - 1], v, w, n - 1));
+    }
+}
+
+int KNAPSACK_DP(int W, int v[], int w[], int n)
+{
+    vector<vector<int>> F(n + 1, vector<int>(W + 1));
+
+    for (int i = 0; i <= n; i++)
+    {
+        for (int j = 0; j <= W; j++)
+        {
+            if (i == 0 or j == 0)
+            {
+                F[i][j] = 0;
+            }
+            else if (w[i - 1] <= j)
+            {
+                F[i][j] = max(F[i - 1][j], v[i - 1] + F[i - 1][j - w[i - 1]]);
+            }
+            else
+            {
+                F[i][j] = F[i - 1][j];
+            }
+        }
+    }
+    return F[n][W];
+}
+
+int main()
+{
+    int n;
+    cout << "\nEnter no. of items:";
+    cin >> n;
+
+    int v[n], w[n];
+    for (int i = 0; i < n; i++)
+    {
+        cout << "\nItem " << i + 1 << endl;
+        cout << "\tWeight:";
+        cin >> w[i];
+        cout << "\tValue:";
+        cin >> v[i];
+    }
+
+    int W;
+
+    cout << "Enter MAX Weight:";
+    cin >> W;
+
+    cout << "\n(KNAPSACK_DP) Maximum value you can carry = " << KNAPSACK_DP(W, v, w, n);
+    cout << "\n(KNAPSACK_GREEDY) Maximum value you can carry = " << KNAPSACK_GREEDY(W, v, w, n);
+
+    return 0;
+}

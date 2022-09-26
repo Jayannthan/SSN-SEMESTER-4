@@ -1,0 +1,364 @@
+﻿SQL> @Z:\Test1\test.sql
+SQL> 
+SQL> -- a) Identify the primary keys and foreign keys of the tables. [4]
+SQL> -- TABLE DRIVER:DCODE
+SQL> -- TABLE CITY:CCODE
+SQL> -- TABLE TRUCK:TRUCKCODE
+SQL> -- TABLE DRIVE_TRUCK:TRUCKCODE,DCODE,DOT
+SQL> 
+SQL> -- b) Create the above-mentioned tables and populate the tables accordingly to
+SQL> -- retrieve the values from the table. [3]
+SQL> 
+SQL> -- Table Deletion
+SQL> DROP TABLE DRIVE_TRUCK;
+
+Table dropped.
+
+SQL> DROP TABLE TRUCK;
+
+Table dropped.
+
+SQL> DROP TABLE CITY;
+
+Table dropped.
+
+SQL> DROP TABLE DRIVER;
+
+Table dropped.
+
+SQL> 
+SQL> --TABLE CREATION
+SQL> 
+SQL> -- TABLE DRIVER CREATION
+SQL> CREATE TABLE DRIVER(
+  2  	 DCODE VARCHAR(5) CONSTRAINT DRIVER_PK PRIMARY KEY,
+  3  	 DNAME VARCHAR(10),
+  4  	 DOB DATE,
+  5  	 GENDER VARCHAR(7),
+  6  	 CONSTRAINT DCODE_START_D CHECK(DCODE LIKE 'D%')
+  7  );
+
+Table created.
+
+SQL> 
+SQL> -- TABLE CITY CREATION
+SQL> CREATE TABLE CITY(
+  2  	 CCODE VARCHAR(5) CONSTRAINT CITY_PK PRIMARY KEY,
+  3  	 CNAME VARCHAR(15)
+  4  );
+
+Table created.
+
+SQL> 
+SQL> 
+SQL> -- TABLE TRUCK CREATION
+SQL> CREATE TABLE TRUCK(
+  2  	 TRUCKCODE VARCHAR(5) CONSTRAINT TRUCK_PK PRIMARY KEY,
+  3  	 TTYPE VARCHAR(3),
+  4  	 CONSTRAINT TTYPE_VALUE_CHECK CHECK(TTYPE IN ('L','H'))
+  5  );
+
+Table created.
+
+SQL> 
+SQL> 
+SQL> -- TABLE DRIVE_TRUCK CREATION
+SQL> CREATE TABLE DRIVE_TRUCK(
+  2  	 TRUCKCODE VARCHAR(5),
+  3  	 DCODE VARCHAR(5),
+  4  	 DOT DATE,
+  5  	 CCODE VARCHAR(5) ,
+  6  	 CONSTRAINT FORKEY_TRUCK FOREIGN KEY(TRUCKCODE) REFERENCES TRUCK(TRUCKCODE),
+  7  	 CONSTRAINT FORKEY_DRIVER FOREIGN KEY(DCODE) REFERENCES DRIVER(DCODE),
+  8  	 CONSTRAINT FORKEY_CITY FOREIGN KEY(CCODE) REFERENCES CITY(CCODE),
+  9  	 CONSTRAINT DRIVE_TRUCK_PK PRIMARY KEY(TRUCKCODE,DCODE,DOT)
+ 10  );
+
+Table created.
+
+SQL> 
+SQL> -- INSERTING VALUES INTO TABLES
+SQL> 
+SQL> -- INSERTING VALUES INTO DRIVER
+SQL> 
+SQL> -- SHOWING CONSTRAINT DCODE_START_D VIOLATION
+SQL> INSERT INTO DRIVER VALUES('01','TONY','25-MAY-1995','Male');
+INSERT INTO DRIVER VALUES('01','TONY','25-MAY-1995','Male')
+*
+ERROR at line 1:
+ORA-02290: check constraint (1049.DCODE_START_D) violated 
+
+
+SQL> 
+SQL> INSERT INTO DRIVER VALUES('D01','TONY','25-MAY-1995','Male');
+
+1 row created.
+
+SQL> 
+SQL> -- SHOWING PRIMARY KEY VIOLATION
+SQL> INSERT INTO DRIVER VALUES('D01','STEVE','25-SEP-1997','Male');
+INSERT INTO DRIVER VALUES('D01','STEVE','25-SEP-1997','Male')
+*
+ERROR at line 1:
+ORA-00001: unique constraint (1049.DRIVER_PK) violated 
+
+
+SQL> 
+SQL> 
+SQL> INSERT INTO DRIVER VALUES('D02','STEVE','16-SEP-1997','Male');
+
+1 row created.
+
+SQL> INSERT INTO DRIVER VALUES('D03','TOM','13-JAN-1994','Male');
+
+1 row created.
+
+SQL> INSERT INTO DRIVER VALUES('D04','CHRIS','7-DEC-1993','Male');
+
+1 row created.
+
+SQL> INSERT INTO DRIVER VALUES('D05','BRUCE','31-MAY-1996','Male');
+
+1 row created.
+
+SQL> 
+SQL> SELECT * FROM DRIVER;
+
+DCODE DNAME      DOB       GENDER                                               
+----- ---------- --------- -------                                              
+D01   TONY       25-MAY-95 Male                                                 
+D02   STEVE      16-SEP-97 Male                                                 
+D03   TOM        13-JAN-94 Male                                                 
+D04   CHRIS      07-DEC-93 Male                                                 
+D05   BRUCE      31-MAY-96 Male                                                 
+
+SQL> 
+SQL> -- INSERTING VALUES INTO CITY
+SQL> 
+SQL> INSERT INTO CITY VALUES('C01','MUMBAI');
+
+1 row created.
+
+SQL> 
+SQL> -- SHOWING PRIMARY KEY VIOLATION
+SQL> INSERT INTO CITY VALUES('C01','DELHI');
+INSERT INTO CITY VALUES('C01','DELHI')
+*
+ERROR at line 1:
+ORA-00001: unique constraint (1049.CITY_PK) violated 
+
+
+SQL> 
+SQL> INSERT INTO CITY VALUES('C02','DELHI');
+
+1 row created.
+
+SQL> INSERT INTO CITY VALUES('C03','CHENNAI');
+
+1 row created.
+
+SQL> INSERT INTO CITY VALUES('C04','KOLKATA');
+
+1 row created.
+
+SQL> INSERT INTO CITY VALUES('C05','HYDERABAD');
+
+1 row created.
+
+SQL> 
+SQL> SELECT * FROM CITY;
+
+CCODE CNAME                                                                     
+----- ---------------                                                           
+C01   MUMBAI                                                                    
+C02   DELHI                                                                     
+C03   CHENNAI                                                                   
+C04   KOLKATA                                                                   
+C05   HYDERABAD                                                                 
+
+SQL> 
+SQL> -- INSERTING VALUES INTO TRUCK
+SQL> 
+SQL> INSERT INTO TRUCK VALUES('T01','L');
+
+1 row created.
+
+SQL> 
+SQL> -- SHOWING PRIMARY KEY VIOLATION
+SQL> INSERT INTO TRUCK VALUES('T01','H');
+INSERT INTO TRUCK VALUES('T01','H')
+*
+ERROR at line 1:
+ORA-00001: unique constraint (1049.TRUCK_PK) violated 
+
+
+SQL> 
+SQL> INSERT INTO TRUCK VALUES('T02','H');
+
+1 row created.
+
+SQL> INSERT INTO TRUCK VALUES('T03','L');
+
+1 row created.
+
+SQL> INSERT INTO TRUCK VALUES('T04','L');
+
+1 row created.
+
+SQL> INSERT INTO TRUCK VALUES('T05','H');
+
+1 row created.
+
+SQL> 
+SQL> SELECT * FROM TRUCK;
+
+TRUCK TTY                                                                       
+----- ---                                                                       
+T01   L                                                                         
+T02   H                                                                         
+T03   L                                                                         
+T04   L                                                                         
+T05   H                                                                         
+
+SQL> 
+SQL> -- INSERTING VALUES INTO DRIVE_TRUCK
+SQL> 
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T01','D02','24-MAR-2021','C03');
+
+1 row created.
+
+SQL> 
+SQL> -- SHOWING PRIMARY KEY VIOLATION
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T01','D02','24-MAR-2021','C02');
+INSERT INTO DRIVE_TRUCK VALUES('T01','D02','24-MAR-2021','C02')
+*
+ERROR at line 1:
+ORA-00001: unique constraint (1049.DRIVE_TRUCK_PK) violated 
+
+
+SQL> 
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T03','D01','25-MAY-2021','C01');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T05','D03','26-JUN-2021','C05');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T02','D05','27-AUG-2021','C03');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T04','D02','28-APR-2021','C04');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T04','D02','28-JAN-2021','C04');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T04','D02','28-JUL-2021','C04');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T04','D02','28-OCT-2021','C04');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T01','D04','29-DEC-2021','C02');
+
+1 row created.
+
+SQL> INSERT INTO DRIVE_TRUCK VALUES('T05','D01','30-NOV-2021','C03');
+
+1 row created.
+
+SQL> 
+SQL> SELECT * FROM DRIVE_TRUCK;
+
+TRUCK DCODE DOT       CCODE                                                     
+----- ----- --------- -----                                                     
+T01   D02   24-MAR-21 C03                                                       
+T03   D01   25-MAY-21 C01                                                       
+T05   D03   26-JUN-21 C05                                                       
+T02   D05   27-AUG-21 C03                                                       
+T04   D02   28-APR-21 C04                                                       
+T04   D02   28-JAN-21 C04                                                       
+T04   D02   28-JUL-21 C04                                                       
+T04   D02   28-OCT-21 C04                                                       
+T01   D04   29-DEC-21 C02                                                       
+T05   D01   30-NOV-21 C03                                                       
+
+10 rows selected.
+
+SQL> 
+SQL> 
+SQL> -- c) Include the constraint as mentioned, the gender of driver is always 'male'.[1]
+SQL> ALTER TABLE DRIVER
+  2  ADD CONSTRAINT DRIVER_GENDER_CHECK CHECK(GENDER='Male');
+
+Table altered.
+
+SQL> 
+SQL> -- CHECKING NEW CONSTRAINT DRIVER_GENDER_CHECK
+SQL> INSERT INTO DRIVER VALUES('D06','RHODEY','6-JUN-1993','Female');
+INSERT INTO DRIVER VALUES('D06','RHODEY','6-JUN-1993','Female')
+*
+ERROR at line 1:
+ORA-02290: check constraint (1049.DRIVER_GENDER_CHECK) violated 
+
+
+SQL> INSERT INTO DRIVER VALUES('D06','RHODEY','6-JUN-1993','Male');
+
+1 row created.
+
+SQL> select * from DRIVER;
+
+DCODE DNAME      DOB       GENDER                                               
+----- ---------- --------- -------                                              
+D01   TONY       25-MAY-95 Male                                                 
+D02   STEVE      16-SEP-97 Male                                                 
+D03   TOM        13-JAN-94 Male                                                 
+D04   CHRIS      07-DEC-93 Male                                                 
+D05   BRUCE      31-MAY-96 Male                                                 
+D06   RHODEY     06-JUN-93 Male                                                 
+
+6 rows selected.
+
+SQL> 
+SQL> -- d) Display the details of the youngest driver [2]
+SQL> SELECT * FROM DRIVER
+  2  WHERE DOB>= ALL(SELECT DOB FROM DRIVER);
+
+DCODE DNAME      DOB       GENDER                                               
+----- ---------- --------- -------                                              
+D02   STEVE      16-SEP-97 Male                                                 
+
+SQL> 
+SQL> -- e) Develop a SQL query to list the details of each driver and the number of
+SQL> -- trips travelled. [2]
+SQL> 
+SQL> SELECT DCODE,DNAME,DOB,GENDER,COUNT(*)
+  2  FROM DRIVER NATURAL JOIN DRIVE_TRUCK
+  3  GROUP BY DCODE,DNAME,DOB,GENDER;
+
+DCODE DNAME      DOB       GENDER    COUNT(*)                                   
+----- ---------- --------- ------- ----------                                   
+D03   TOM        13-JAN-94 Male             1                                   
+D05   BRUCE      31-MAY-96 Male             1                                   
+D02   STEVE      16-SEP-97 Male             5                                   
+D01   TONY       25-MAY-95 Male             2                                   
+D04   CHRIS      07-DEC-93 Male             1                                   
+
+SQL> 
+SQL> -- f) Develop a SQL query to list the details of drivers who have travelled more than three times in the same city.[3]
+SQL> SELECT * FROM DRIVER
+  2  WHERE DCODE IN (SELECT DCODE FROM DRIVE_TRUCK
+  3  GROUP BY (DCODE,CCODE)
+  4  HAVING COUNT(*)>3);
+
+DCODE DNAME      DOB       GENDER                                               
+----- ---------- --------- -------                                              
+D02   STEVE      16-SEP-97 Male                                                 
+
+SQL> spool off;

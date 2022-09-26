@@ -1,0 +1,462 @@
+CREATE TABLE departments 
+    ( department_id    NUMBER(4) 
+    , department_name  VARCHAR2(30) 
+	CONSTRAINT  dept_name_nn  NOT NULL 
+    , manager_id       NUMBER(6) 
+    , location_id      NUMBER(4) 
+    ) ;
+
+ALTER TABLE departments 
+ADD ( CONSTRAINT dept_id_pk 
+       		 PRIMARY KEY (department_id) 
+     ) ;
+
+CREATE TABLE employees 
+    ( employee_id    NUMBER(6) 
+    , first_name     VARCHAR2(20) 
+    , last_name      VARCHAR2(25) 
+
+	 CONSTRAINT     emp_last_name_nn  NOT NULL 
+    , email          VARCHAR2(25) 
+	CONSTRAINT     emp_email_nn  NOT NULL 
+    , phone_number   VARCHAR2(20) 
+    , hire_date      DATE 
+	CONSTRAINT     emp_hire_date_nn  NOT NULL 
+    , job_id         VARCHAR2(10) 
+	CONSTRAINT     emp_job_nn  NOT NULL 
+    , salary         NUMBER(8,2) 
+    , commission_pct NUMBER(2,2) 
+    , manager_id     NUMBER(6) 
+    , department_id  NUMBER(4) 
+    , CONSTRAINT     emp_salary_min 
+                     CHECK (salary > 0)  
+    , CONSTRAINT     emp_email_uk 
+                     UNIQUE (email) 
+    ) ;
+
+ALTER TABLE employees 
+ADD ( CONSTRAINT     emp_emp_id_pk 
+                     PRIMARY KEY (employee_id) 
+    , CONSTRAINT     emp_dept_fk 
+                     FOREIGN KEY (department_id) 
+                      REFERENCES departments 
+    , CONSTRAINT     emp_manager_fk 
+                     FOREIGN KEY (manager_id) 
+                      REFERENCES employees 
+    ) ;
+
+CREATE TABLE job_grades 
+    ( grade    	CHAR(1) 
+    , lowest_sal  NUMBER(5) 
+	CONSTRAINT  low_sal_nn  NOT NULL 
+    , highest_sal      NUMBER(5) 
+	CONSTRAINT  high_sal_nn  NOT NULL 
+    ) ;
+
+ALTER TABLE job_grades 
+ADD ( CONSTRAINT grade_pk 
+       		 PRIMARY KEY (grade) 
+     ) ;
+
+
+
+INSERT INTO departments VALUES  
+        ( 10 
+        , 'Administration' 
+        , 200 
+        , 1700 
+        );
+
+INSERT INTO departments VALUES  
+        ( 20 
+        , 'Marketing' 
+        , 201 
+        , 1800 
+        );
+
+INSERT INTO departments VALUES  
+        ( 50 
+        , 'Shipping' 
+        , 121 
+        , 1500 
+        );
+
+INSERT INTO departments VALUES  
+        ( 60  
+        , 'IT' 
+        , 103 
+        , 1400 
+        );
+
+INSERT INTO departments VALUES  
+        ( 80  
+        , 'Sales' 
+        , 145 
+        , 2500 
+        );
+
+INSERT INTO departments VALUES  
+        ( 90  
+        , 'Executive' 
+        , 100 
+        , 1700 
+        );
+
+INSERT INTO departments VALUES  
+        ( 100  
+        , 'Finance' 
+        , 108 
+        , 1700 
+        );
+
+INSERT INTO departments VALUES  
+        ( 110  
+        , 'Accounting' 
+        , 205 
+        , 1700 
+        );
+
+INSERT INTO departments VALUES  
+        ( 190  
+        , 'Contracting' 
+        , NULL 
+        , 1700 
+        );
+
+COMMIT;
+
+
+INSERT INTO employees VALUES  
+        ( 100 
+        , 'Steven' 
+        , 'King' 
+        , 'SKING' 
+        , '515.123.4567' 
+        , TO_DATE('17-JUN-1987', 'dd-MON-yyyy') 
+        , 'AD_PRES' 
+        , 24000 
+        , NULL 
+        , NULL 
+        , 90 
+        );
+
+INSERT INTO employees VALUES  
+        ( 100 
+        , 'Steven' 
+        , 'King' 
+        , 'SKING' 
+        , '515.123.4567' 
+        , TO_DATE('17-JUN-1987', 'dd-MON-yyyy') 
+        , 'AD_PRES' 
+        , 24000 
+        , NULL 
+        , NULL 
+        , 90 
+        );
+
+INSERT INTO employees VALUES  
+        ( 100 
+        , 'Steven' 
+        , 'King' 
+        , 'SKING' 
+        , '515.123.4567' 
+        , TO_DATE('17-JUN-1987', 'dd-MON-yyyy') 
+        , 'AD_PRES' 
+        , 24000 
+        , NULL 
+        , NULL 
+        , 90 
+        );
+
+select * from departments ;
+
+select * from employees;
+
+
+select employee_id, first_name, last_name,department_id from employees;
+EMPLOYEE_ID	FIRST_NAME	LAST_NAME	DEPARTMENT_ID
+100			Steven	King		90
+101			Neena		Kochhar	90
+102			Lex		De Haan	90
+103			Alexander	Hunold	60
+104			Bruce		Ernst		60
+105			David		Austin	60
+106			Valli		Pataballa	60
+107			Diana		Lorentz	60
+124			Kevin		Mourgos	50
+141			Trenna	Rajs		50
+142			Curtis	Davies	50
+143			Randall	Matos		50
+144			Peter		Vargas	50
+149			Eleni		Zlotkey	80
+174			Ellen		Abel		80
+176			Jonathon	Taylor	80
+178			Kimberely	Grant	 	- 
+200			Jennifer	Whalen	10
+201			Michael	Hartstein	20
+202			Pat		Fay		20
+205			Shelley	Higgins	110
+206			William	Gietz		110
+
+
+
+select distinct(salary) from employees;
+SALARY
+4200
+3100
+2600
+9000
+4400
+4800
+10500
+7000
+8300
+6000
+2500
+11000
+17000
+12000
+24000
+5800
+3500
+8600
+13000
+
+
+SELECT employee_id,department_id from employees where first_NAME='Steven' AND Last_NAME='King'
+
+
+EMPLOYEE_ID	DEPARTMENT_ID
+100				90
+
+
+
+SELECT last_name,salary, department_id from employees where department_id=60 and salary=4800;
+
+LAST_NAME	SALARY	DEPARTMENT_ID
+Austin	4800			60
+Pataballa	4800			60
+
+
+SELECT employee_id, first_name,salary,department_id from employees where salary>15000 or department_id=110;
+EMPLOYEE_ID	FIRST_NAME	SALARY	DEPARTMENT_ID
+100			Steven	24000			90
+101			Neena		17000			90
+102			Lex		17000			90
+205			Shelley	12000			110
+206			William	8300			110
+
+
+
+SELECT * from employees where department_id!=60
+
+EMPLOYEE_ID	FIRST_NAME	LAST_NAME	EMAIL	PHONE_NUMBER	HIRE_DATE	JOB_ID	SALARY	COMMISSION_PCT	MANAGER_ID	DEPARTMENT_ID
+100	Steven	King	SKING	515.123.4567	17-JUN-87	AD_PRES	24000	 - 	 - 	90
+101	Neena	Kochhar	NKOCHHAR	515.123.4568	21-SEP-89	AD_VP	17000	 - 	100	90
+102	Lex	De Haan	LDEHAAN	515.123.4569	13-JAN-93	AD_VP	17000	 - 	100	90
+124	Kevin	Mourgos	KMOURGOS	650.123.5234	16-NOV-99	ST_MAN	5800	 - 	100	50
+141	Trenna	Rajs	TRAJS	650.121.8009	17-OCT-95	ST_CLERK	3500	 - 	124	50
+142	Curtis	Davies	CDAVIES	650.121.2994	29-JAN-97	ST_CLERK	3100	 - 	124	50
+143	Randall	Matos	RMATOS	650.121.2874	15-MAR-98	ST_CLERK	2600	 - 	124	50
+144	Peter	Vargas	PVARGAS	650.121.2004	09-JUL-98	ST_CLERK	2500	 - 	124	50
+149	Eleni	Zlotkey	EZLOTKEY	011.44.1344.429018	29-JAN-00	SA_MAN	10500	.2	100	80
+174	Ellen	Abel	EABEL	011.44.1644.429267	11-MAY-96	SA_REP	11000	.3	149	80
+176	Jonathon	Taylor	JTAYLOR	011.44.1644.429265	24-MAR-98	SA_REP	8600	.2	149	80
+200	Jennifer	Whalen	JWHALEN	515.123.4444	17-SEP-87	AD_ASST	4400	 - 	101	10
+201	Michael	Hartstein	MHARTSTE	515.123.5555	17-FEB-96	MK_MAN	13000	 - 	100	20
+202	Pat	Fay	PFAY	603.123.6666	17-AUG-97	MK_REP	6000	 - 	201	20
+205	Shelley	Higgins	SHIGGINS	515.123.8080	07-JUN-94	AC_MGR	12000	 - 	101	110
+206	William	Gietz	WGIETZ	515.123.8181	07-JUN-94	AC_ACCOUNT	8300	 - 	205	110
+
+
+
+
+Select Last_NAME,SALARY,SALARY+300 from employees;
+LAST_NAME	SALARY	SALARY+300
+King	24000	24300
+Kochhar	17000	17300
+De Haan	17000	17300
+Hunold	9000	9300
+Ernst	6000	6300
+Austin	4800	5100
+Pataballa	4800	5100
+Lorentz	4200	4500
+Mourgos	5800	6100
+Rajs	3500	3800
+Davies	3100	3400
+Matos	2600	2900
+Vargas	2500	2800
+Zlotkey	10500	10800
+Abel	11000	11300
+Taylor	8600	8900
+Grant	7000	7300
+Whalen	4400	4700
+Hartstein	13000	13300
+Fay	6000	6300
+Higgins	12000	12300
+Gietz	8300	8600
+
+
+Select Last_NAME,SALARY*.2 from employees;
+LAST_NAME		SALARY*.2
+King			4800
+Kochhar		3400
+De Haan		3400
+Hunold		1800
+Ernst			1200
+Austin		960
+Pataballa		960
+Lorentz		840
+Mourgos		1160
+Rajs			700
+Davies		620
+Matos			520
+Vargas		500
+Zlotkey		2100
+Abel			2200
+Taylor		1720
+Grant			1400
+Whalen		880	
+Hartstein		2600
+Fay			1200
+Higgins		2400
+Gietz			1660
+
+
+Select Last_name as name, manager_id as MGR_ID from employees where department_id=60;
+NAME		MGR_ID
+Hunold	102
+Ernst		103
+Austin	103
+Pataballa	103
+Lorentz	103
+
+
+Select Last_NAME || First_NAME as name from EMPLOYEEs;
+
+NAME
+KingSteven
+KochharNeena
+De HaanLex
+HunoldAlexander
+ErnstBruce
+AustinDavid
+PataballaValli
+LorentzDiana
+MourgosKevin
+RajsTrenna
+DaviesCurtis
+MatosRandall
+VargasPeter
+ZlotkeyEleni
+AbelEllen
+TaylorJonathon
+GrantKimberely
+WhalenJennifer
+HartsteinMichael
+FayPat
+HigginsShelley
+GietzWilliam
+
+
+SELECT last_name,first_name,manager_id FROM employees where manager_id is Null;
+LAST_NAME	FIRST_NAME	MANAGER_ID
+King		Steven	 - 
+
+
+
+SELECT last_name,first_name,manager_id FROM employees where manager_id is not Null;
+
+LAST_NAME	FIRST_NAME	MANAGER_ID
+Kochhar	Neena		100
+De Haan	Lex		100
+Hunold	Alexander	102
+Ernst		Bruce		103
+Austin	David		103
+Pataballa	Valli		103
+Lorentz	Diana		103
+Mourgos	Kevin		100
+Rajs		Trenna	124
+Davies	Curtis	124
+Matos		Randall	124
+Vargas	Peter		124
+Zlotkey	Eleni		100
+Abel		Ellen		149
+Taylor	Jonathon	149
+Grant		Kimberely	149
+Whalen	Jennifer	101
+Hartstein	Michael	100
+Fay		Pat		201
+
+
+SELECT last_name, salary FROM employees WHERE salary <= 3000;
+LAST_NAME	SALARY
+Matos		2600
+Vargas	2500
+
+
+SELECT BDATE, ADDRESS FROM EMPLOYEE
+WHERE FNAME= John 
+Higgins	Shelley	101
+Gietz	William	205
+
+
+SELECT employee_id,job_id FROM EMPLOYEEs WHERE First_name='David' ;
+EMPLOYEE_ID	JOB_ID
+105			IT_PROG
+
+
+Select First_name,Last_name from employees where first_name like 'J%';
+FIRST_NAME	LAST_NAME
+Jonathon	Taylor
+Jennifer	Whalen
+
+
+
+select first_name,hire_Date from employees where hire_date like '%9_';
+FIRST_NAME	HIRE_DATE
+Lex	13-JAN-93
+Alexander	03-JAN-90
+Bruce	21-MAY-91
+David	25-JUN-97
+Valli	05-FEB-98
+Diana	07-FEB-99
+Kevin	16-NOV-99
+Trenna	17-OCT-95
+Curtis	29-JAN-97
+Randall	15-MAR-98
+Peter	09-JUL-98
+Ellen	11-MAY-96
+Jonathon	24-MAR-98
+Kimberely	24-MAY-99
+Michael	17-FEB-96
+Pat	17-AUG-97
+Shelley	07-JUN-94
+William	07-JUN-94
+
+
+
+
+LAST_NAME	FIRST_NAME	SALARY	DEPARTMENT_ID
+King	Steven	24000	90
+Kochhar	Neena	17000	90
+De Haan	Lex	17000	90
+Hunold	Alexander	9000	60
+Ernst	Bruce	6000	60
+Austin	David	4800	60
+Pataballa	Valli	4800	60
+Lorentz	Diana	4200	60
+Higgins	Shelley	12000	110
+Gietz	William	8300	110
+
+
+Select last_name,first_name,salary,department_id from employees where (salary between 15000 and 40000)  and department_id  in (60,110,90);
+
+LAST_NAME	FIRST_NAME	SALARY	DEPARTMENT_ID
+King	Steven	24000	90
+Kochhar	Neena	17000	90
+De Haan	Lex	17000	90
+
+
+
+

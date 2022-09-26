@@ -1,0 +1,184 @@
+SQL> @D:/assn3Qns;
+SQL> -- ASSIGNMENT 3
+SQL> 
+SQL> -- DESC ITEM_LIST;
+SQL> -- DESC RECEIPTS;
+SQL> -- DESC PRODUCTS;
+SQL> -- DESC CUSTOMERS;
+SQL> 
+SQL> -- WRITE THE FOLLOWING USING SUB-QUERY:
+SQL> -- 1. DISPLAY THE FOOD DETAILS THAT IS NOT PURCHASED BY ANY OF CUSTOMERS.
+SQL> 
+SQL> SELECT * FROM PRODUCTS
+  2  WHERE PID NOT IN(SELECT ITEM FROM ITEM_LIST);
+
+PID             FLAVOR               FOOD                      PRICE
+--------------- -------------------- -------------------- ----------
+20-BC-C-10      Chocolate            Cake                       8.95
+
+SQL> 
+SQL> -- 2. SHOW THE CUSTOMER DETAILS WHO HAD PLACED MORE THAN 2 ORDERS ON THE SAME DATE.
+SQL> 
+SQL> SELECT * FROM CUSTOMERS
+  2  WHERE CID IN(SELECT CID FROM RECEIPTS
+  3  GROUP BY CID,RDATE
+  4  HAVING COUNT(*)>2);
+
+       CID FNAME                          LNAME                         
+---------- ------------------------------ ------------------------------
+         8 HELING                         RUPERT                        
+        14 SOPKO                          RAYFORD                       
+
+SQL> 
+SQL> -- 3. DISPLAY THE PRODUCTS DETAILS THAT HAS BEEN ORDERED MAXIMUM BY THE CUSTOMERS. (USE
+SQL> -- ALL)
+SQL> 
+SQL> SELECT * FROM PRODUCTS
+  2  WHERE PID IN (SELECT ITEM FROM ITEM_LIST GROUP BY ITEM
+  3  HAVING COUNT(*) >=ALL (SELECT COUNT(*) FROM ITEM_LIST GROUP BY ITEM);
+
+Error starting at line : 24 File @ D:\assn3Qns.sql
+In command -
+SELECT * FROM PRODUCTS
+WHERE PID IN (SELECT ITEM FROM ITEM_LIST GROUP BY ITEM
+HAVING COUNT(*) >=ALL (SELECT COUNT(*) FROM ITEM_LIST GROUP BY ITEM)
+Error at Command Line : 26 Column : 68 File @ D:\assn3Qns.sql
+Error report -
+SQL Error: ORA-00907: missing right parenthesis
+00907. 00000 -  "missing right parenthesis"
+*Cause:    
+*Action:
+SQL> 
+SQL> 
+SQL> -- 4. SHOW THE NUMBER OF RECEIPTS THAT CONTAIN THE PRODUCT WHOSE PRICE IS MORE THAN THE
+SQL> AVERAGE PRICE OF ITS FOOD TYPE.
+
+Error starting at line : 30 File @ D:\assn3Qns.sql
+In command -
+AVERAGE PRICE OF ITS FOOD TYPE.
+Error report -
+Unknown Command
+
+SQL> 
+SQL> SELECT COUNT(DISTINCT RNO) AS RECEIPT_COUNT FROM ITEM_LIST
+  2  WHERE ITEM IN (SELECT PID  FROM PRODUCTS OUTER
+  3  WHERE PRICE > (SELECT AVG(PRICE) FROM PRODUCTS WHERE FOOD=OUTER.FOOD));
+
+RECEIPT_COUNT
+-------------
+          137
+
+SQL> 
+SQL> 
+SQL> -- WRITE THE FOLLOWING USING JOIN: (USE SUB-QUERY IF REQUIRED)
+SQL> -- 5. DISPLAY THE CUSTOMER DETAILS ALONG WITH RECEIPT NUMBER AND DATE FOR THE RECEIPTS THAT
+SQL> -- ARE DATED ON THE LAST DAY OF THE RECEIPT MONTH.
+SQL> 
+SQL> SELECT DISTINCT CID,FNAME,LNAME,RNO,RDATE 
+  2  FROM CUSTOMERS C NATURAL JOIN RECEIPTS R
+  3  WHERE R.RDATE=LAST_DAY(R.RDATE);
+
+       CID FNAME                          LNAME                                 RNO RDATE   
+---------- ------------------------------ ------------------------------ ---------- --------
+        11 STADICK                        MIGDALIA                            60270 31-10-07
+        20 ZEME                           STEPHEN                             49845 31-10-07
+         3 ESPOSITA                       TRAVIS                              39829 31-10-07
+        12 MCMAHAN                        MELLIE                              70796 31-10-07
+        19 STENZ                          NATACHA                             36343 31-10-07
+         1 LOGAN                          JULIET                              85858 31-10-07
+
+6 rows selected. 
+
+SQL> 
+SQL> -- 6. DISPLAY THE RECEIPT NUMBER(S) AND ITS TOTAL PRICE FOR THE RECEIPT(S) THAT CONTAIN TWIST
+SQL> -- AS ONE AMONG FIVE ITEMS. INCLUDE ONLY THE RECEIPTS WITH TOTAL PRICE MORE THAN $25.
+SQL> 
+SQL> SELECT RNO, SUM(PRICE) AS TOTALPRICE FROM ITEM_LIST I JOIN PRODUCTS P ON (I.ITEM = P.PID)
+  2  WHERE RNO IN (SELECT RNO FROM ITEM_LIST I JOIN PRODUCTS P ON (I.ITEM = P.PID) WHERE FOOD='Twist') 
+  3  GROUP BY RNO HAVING SUM(PRICE) >25;
+
+       RNO TOTALPRICE
+---------- ----------
+     83085      48.25
+     64477      25.35
+     17729      25.55
+
+SQL> 
+SQL> -- 7. DISPLAY THE DETAILS (CUSTOMER DETAILS, RECEIPT NUMBER, ITEM) FOR THE PRODUCT THAT WAS PURCHASED BY THE LEAST NUMBER OF CUSTOMERS.
+SQL> 
+SQL> SELECT DISTINCT CUSTOMERS.CID,FNAME,LNAME,RECEIPTS.RNO,ITEM 
+  2  FROM CUSTOMERS,RECEIPTS,ITEM_LIST 
+  3  WHERE CUSTOMERS.CID=RECEIPTS.CID AND RECEIPTS.RNO=ITEM_LIST.RNO AND ITEM IN
+  4  (SELECT ITEM FROM ITEM_LIST GROUP BY ITEM HAVING COUNT(*)=(SELECT MIN(COUNT(*)) FROM ITEM_LIST GROUP BY ITEM));
+
+       CID FNAME                          LNAME                                 RNO ITEM           
+---------- ------------------------------ ------------------------------ ---------- ---------------
+        20 ZEME                           STEPHEN                             49845 50-CH          
+        18 DOMKOWSKI                      ALMETA                              82056 50-CH          
+        14 SOPKO                          RAYFORD                             77032 50-CH          
+        18 DOMKOWSKI                      ALMETA                              73716 50-CH          
+         6 SLINGLAND                      JOSETTE                             99994 50-CH          
+         8 HELING                         RUPERT                              95962 50-CH          
+
+6 rows selected. 
+
+SQL> 
+SQL> -- 8. DISPLAY THE CUSTOMER DETAILS ALONG WITH THE RECEIPT NUMBER WHO ORDERED ALL THE FLAVORS OF MERINGUE IN THE SAME RECEIPT.
+SQL> 
+SQL> SELECT DISTINCT CID, FNAME,LNAME,RNO FROM CUSTOMERS NATURAL JOIN RECEIPTS
+  2  WHERE RNO IN (SELECT RNO FROM (SELECT DISTINCT RNO, FLAVOR FROM PRODUCTS JOIN ITEM_LIST ON(ITEM=PID)
+  3  WHERE FOOD='Meringue' GROUP BY RNO,FLAVOR) GROUP BY RNO HAVING COUNT(*)>1);
+
+       CID FNAME                          LNAME                                 RNO
+---------- ------------------------------ ------------------------------ ----------
+         8 HELING                         RUPERT                              61797
+
+SQL> 
+SQL> -- WRITE THE FOLLOWING USING SET OPERATIONS:
+SQL> -- 9. DISPLAY THE PRODUCT DETAILS OF BOTH PIE AND BEAR CLAW.
+SQL> 
+SQL> 
+SQL> SELECT * FROM PRODUCTS WHERE FOOD = 'Pie'
+  2  UNION
+  3  SELECT * FROM PRODUCTS WHERE FOOD = 'Bear Claw';
+
+PID             FLAVOR               FOOD                      PRICE
+--------------- -------------------- -------------------- ----------
+51-BC           Almond               Bear Claw                  1.95
+90-APIE-10      Apple                Pie                        5.25
+
+SQL> 
+SQL> -- 10.DISPLAY THE CUSTOMERS DETAILS WHO HAVEN'T PLACED ANY ORDERS.
+SQL> 
+SQL> SELECT * FROM CUSTOMERS
+  2  MINUS (SELECT CID, FNAME, LNAME
+  3  FROM CUSTOMERS NATURAL JOIN RECEIPTS);
+no rows selected
+SQL> 
+SQL> -- 11.DISPLAY THE FOOD THAT HAS THE SAME FLAVOR AS THAT OF THE COMMON FLAVOR BETWEEN THE
+SQL> -- MERINGUE AND TART.
+SQL> 
+SQL> SELECT FOOD FROM PRODUCTS
+  2  WHERE FLAVOR IN (SELECT FLAVOR FROM PRODUCTS
+  3  WHERE FOOD = 'Meringue'
+  4  INTERSECT
+  5  SELECT FLAVOR FROM PRODUCTS
+  6  WHERE FOOD = 'Tart');
+
+FOOD                
+--------------------
+Cake
+Eclair
+Tart
+Meringue
+Croissant
+
+SQL> 
+SQL> 
+SQL> 
+SQL> -- 8. DISPLAY THE CUSTOMER DETAILS ALONG WITH THE RECEIPT NUMBER WHO ORDERED ALL THE FLAVORS OF MERINGUE IN THE SAME RECEIPT.
+SQL> 
+SQL> -- SELECT DISTINCT CID, FNAME,LNAME,RNO FROM CUSTOMERS NATURAL JOIN RECEIPTS
+SQL> -- WHERE RNO IN (WITH R AS (SELECT DISTINCT RNO, FLAVOR FROM PRODUCTS JOIN ITEM_LIST ON(ITEM=PID)
+SQL> -- WHERE FOOD='Meringue' GROUP BY RNO,FLAVOR) SELECT RNO FROM R GROUP BY RNO HAVING COUNT(*)>1);
+SQL> spool off;
